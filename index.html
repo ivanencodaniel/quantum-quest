@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quantum Quest Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+    .header h1 { font-size: 2.5rem; margin-bottom: 10px; }
+    .header p { font-size: 1.1rem; opacity: 0.9; }
+    .tabs {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 20px;
+      border: 2px solid white;
+      background: transparent;
+      color: white;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+    .tab-btn:hover { background: white; color: #667eea; }
+    .tab-btn.active { background: white; color: #667eea; }
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .video-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s;
+      cursor: pointer;
+    }
+    .video-card:hover { transform: translateY(-5px); }
+    .thumbnail {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      background: #ddd;
+    }
+    .content { padding: 15px; }
+    .content h3 { font-size: 1.1rem; margin-bottom: 10px; color: #333; }
+    .content p { color: #666; font-size: 0.9rem; line-height: 1.4; }
+    .meta {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+    }
+    .badge {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: white;
+    }
+    .badge.3am { background: #ff6b6b; }
+    .badge.3pm { background: #4ecdc4; }
+    .date { color: #999; font-size: 0.85rem; }
+    .empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: white;
+      font-size: 1.2rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      grid-column: 1 / -1;
+    }
+    .generate-btn {
+      display: block;
+      margin: 20px auto;
+      padding: 12px 30px;
+      background: white;
+      color: #667eea;
+      border: none;
+      border-radius: 25px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .generate-btn:hover { transform: scale(1.05); }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      max-width: 700px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    .modal-header {
+      padding: 20px;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-header h2 { font-size: 1.5rem; color: #333; }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #999;
+    }
+    .modal-body {
+      padding: 20px;
+    }
+    .video-player {
+      width: 100%;
+      height: 400px;
+      background: #000;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .video-player video {
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+    }
+    .modal-body p {
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 15px;
+    }
+    .modal-footer {
+      padding: 20px;
+      border-top: 1px solid #ddd;
+      display: flex;
+      gap: 10px;
+    }
+    .btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .btn-approve { background: #51cf66; color: white; }
+    .btn-approve:hover { background: #40c057; }
+    .btn-reject { background: #ff7d7d; color: white; }
+    .btn-reject:hover { background: #ff6b6b; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🚀 Quantum Quest Dashboard</h1>
+      <p>AI-powered YouTube Shorts & TikTok Generator</p>
+    </div>
+
+    <button class="generate-btn" onclick="generateVideo()">+ Generate Video</button>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="filterVideos('queued')">QUEUED</button>
+      <button class="tab-btn" onclick="filterVideos('approved')">APPROVED</button>
+      <button class="tab-btn" onclick="filterVideos('posted')">POSTED</button>
+      <button class="tab-btn" onclick="filterVideos('rejected')">REJECTED</button>
+    </div>
+
+    <div class="video-grid" id="videoGrid"></div>
+  </div>
+
+  <div class="modal" id="previewModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Video Preview</h2>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="video-player">
+          <video id="videoPlayer" controls>
+            <source src="" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        <img id="modalImage" src="" alt="Video thumbnail" style="width: 100%; border-radius: 8px; margin-bottom: 20px;">
+        <h3 id="modalTitle"></h3>
+        <p id="modalDescription"></p>
+        <p><strong>Scheduled:</strong> <span id="modalSchedule"></span></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-approve" onclick="approveFromModal()">✅ Approve</button>
+        <button class="btn btn-reject" onclick="rejectFromModal()">❌ Reject</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentFilter = 'queued';
+    let currentVideoId = null;
+    let allVideos = [];
+
+    const sampleVideos = [
+      'https://commondatastorage.googleapis.com/gtv-videos-library/sample/BigBuckBunny.mp4',
+      'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ElephantsDream.mp4',
+      'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerBlazes.mp4',
+      'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerEscapes.mp4',
+      'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerFun.mp4'
+    ];
+
+    async function loadVideos() {
+      try {
+        const res = await fetch(`http://localhost:5000/api/queue/status/${currentFilter}`);
+        allVideos = await res.json();
+        renderVideos(allVideos);
+      } catch (error) {
+        console.error('Error loading videos:', error);
+      }
+    }
+
+    function renderVideos(videos) {
+      const grid = document.getElementById('videoGrid');
+      if (!videos || videos.length === 0) {
+        grid.innerHTML = `<div class="empty">No videos in ${currentFilter} status</div>`;
+        return;
+      }
+
+      grid.innerHTML = videos.map(video => `
+        <div class="video-card" onclick="openPreview(${video._id})">
+          <img src="${video.thumbnailUrl}" alt="${video.title}" class="thumbnail">
+          <div class="content">
+            <h3>${video.title}</h3>
+            <p>${video.description.substring(0, 50)}...</p>
+            <div class="meta">
+              <span class="badge ${video.scheduledPost}">${video.scheduledPost}</span>
+              <span class="date">${new Date(video.createdAt).toLocaleDateString()}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openPreview(id) {
+      const video = allVideos.find(v => v._id === id);
+      if (!video) return;
+      
+      currentVideoId = id;
+      
+      // Set different video for each ID
+      const videoIndex = (id - 1) % sampleVideos.length;
+      document.getElementById('videoPlayer').src = sampleVideos[videoIndex];
+      
+      document.getElementById('modalImage').src = video.thumbnailUrl;
+      document.getElementById('modalTitle').textContent = video.title;
+      document.getElementById('modalDescription').textContent = video.description;
+      document.getElementById('modalSchedule').textContent = video.scheduledPost;
+      
+      document.getElementById('previewModal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('previewModal').classList.remove('active');
+      document.getElementById('videoPlayer').pause();
+      currentVideoId = null;
+    }
+
+    async function approveFromModal() {
+      await fetch(`http://localhost:5000/api/queue/${currentVideoId}/approve`, { method: 'POST' });
+      alert('Video approved! ✅');
+      closeModal();
+      loadVideos();
+    }
+
+    async function rejectFromModal() {
+      const reason = prompt('Reason for rejection:');
+      if (reason !== null) {
+        await fetch(`http://localhost:5000/api/queue/${currentVideoId}/reject`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason })
+        });
+        alert('Video rejected ❌');
+        closeModal();
+        loadVideos();
+      }
+    }
+
+    async function generateVideo() {
+      await fetch(`http://localhost:5000/api/queue/generate`, { method: 'POST' });
+      alert('Video generated! 🎬');
+      filterVideos('queued');
+    }
+
+    function filterVideos(status) {
+      currentFilter = status;
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      loadVideos();
+    }
+
+    loadVideos();
+    setInterval(loadVideos, 5000);
+  </script>
+</body>
+</html>
