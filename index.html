@@ -100,7 +100,6 @@
       font-size: 1rem;
     }
     .generate-btn:hover { transform: scale(1.05); }
-
     .modal {
       display: none;
       position: fixed;
@@ -141,20 +140,10 @@
     .modal-body {
       padding: 20px;
     }
-    .video-player {
+    .modal-body img {
       width: 100%;
-      height: 400px;
-      background: #000;
       border-radius: 8px;
       margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .video-player video {
-      width: 100%;
-      height: 100%;
-      border-radius: 8px;
     }
     .modal-body p {
       color: #666;
@@ -207,13 +196,7 @@
         <button class="modal-close" onclick="closeModal()">✕</button>
       </div>
       <div class="modal-body">
-        <div class="video-player">
-          <video id="videoPlayer" controls>
-            <source src="" type="video/mp4">
-            Your browser does not support the video tag.
-          </video>
-        </div>
-        <img id="modalImage" src="" alt="Video thumbnail" style="width: 100%; border-radius: 8px; margin-bottom: 20px;">
+        <img id="modalImage" src="" alt="Video thumbnail">
         <h3 id="modalTitle"></h3>
         <p id="modalDescription"></p>
         <p><strong>Scheduled:</strong> <span id="modalSchedule"></span></p>
@@ -230,17 +213,9 @@
     let currentVideoId = null;
     let allVideos = [];
 
-    const sampleVideos = [
-      'https://commondatastorage.googleapis.com/gtv-videos-library/sample/BigBuckBunny.mp4',
-      'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ElephantsDream.mp4',
-      'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerBlazes.mp4',
-      'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerEscapes.mp4',
-      'https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerFun.mp4'
-    ];
-
     async function loadVideos() {
       try {
-        const res = await fetch(`http://localhost:5000/api/queue/status/${currentFilter}`);
+        const res = await fetch(`/api/queue/status/${currentFilter}`);
         allVideos = await res.json();
         renderVideos(allVideos);
       } catch (error) {
@@ -275,11 +250,6 @@
       if (!video) return;
       
       currentVideoId = id;
-      
-      // Set different video for each ID
-      const videoIndex = (id - 1) % sampleVideos.length;
-      document.getElementById('videoPlayer').src = sampleVideos[videoIndex];
-      
       document.getElementById('modalImage').src = video.thumbnailUrl;
       document.getElementById('modalTitle').textContent = video.title;
       document.getElementById('modalDescription').textContent = video.description;
@@ -290,12 +260,11 @@
 
     function closeModal() {
       document.getElementById('previewModal').classList.remove('active');
-      document.getElementById('videoPlayer').pause();
       currentVideoId = null;
     }
 
     async function approveFromModal() {
-      await fetch(`http://localhost:5000/api/queue/${currentVideoId}/approve`, { method: 'POST' });
+      await fetch(`/api/queue/${currentVideoId}/approve`, { method: 'POST' });
       alert('Video approved! ✅');
       closeModal();
       loadVideos();
@@ -304,7 +273,7 @@
     async function rejectFromModal() {
       const reason = prompt('Reason for rejection:');
       if (reason !== null) {
-        await fetch(`http://localhost:5000/api/queue/${currentVideoId}/reject`, {
+        await fetch(`/api/queue/${currentVideoId}/reject`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ reason })
@@ -316,7 +285,7 @@
     }
 
     async function generateVideo() {
-      await fetch(`http://localhost:5000/api/queue/generate`, { method: 'POST' });
+      await fetch(`/api/queue/generate`, { method: 'POST' });
       alert('Video generated! 🎬');
       filterVideos('queued');
     }
