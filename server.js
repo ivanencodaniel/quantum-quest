@@ -9,7 +9,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname)));
 
 let videos = [];
 let videoId = 1;
@@ -100,7 +100,6 @@ app.post('/api/queue/generate', async (req, res) => {
       return res.status(500).json({ error: 'No trending videos found' });
     }
 
-    // Find unused video
     let selectedVideo = null;
     for (let i = 0; i < trendingCache.length; i++) {
       const video = trendingCache[Math.floor(Math.random() * trendingCache.length)];
@@ -110,7 +109,6 @@ app.post('/api/queue/generate', async (req, res) => {
       }
     }
 
-    // If all videos used, reset and pick random
     if (!selectedVideo) {
       usedVideoIds.clear();
       selectedVideo = trendingCache[Math.floor(Math.random() * trendingCache.length)];
@@ -147,6 +145,11 @@ app.get('/api/health', (req, res) => {
     trendingCached: trendingCache.length,
     usedVideos: usedVideoIds.size
   });
+});
+
+// Serve index.html for root path
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 const PORT = process.env.PORT || 5000;
